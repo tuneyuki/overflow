@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/db/supabase-client"
 
 // 単一質問の取得
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  ctx: { params: Promise<{ id: string }> } // ← ここを Promise に合わせる
 ) {
+  const { id } = await ctx.params; // await して取り出す
   const supabase = await createClient()
-  const questionId = parseInt(params.id, 10)
+  const questionId = parseInt(id, 10)
 
   // 質問を取得
   const { data: question, error: qErr } = await supabase
@@ -48,7 +49,7 @@ export async function GET(
   }
 
   const formattedAnswers =
-    answers?.map((a) => ({
+    answers?.map((a: any) => ({
       id: a.id,
       content: a.body,
       isAccepted: a.is_accepted,
