@@ -9,11 +9,11 @@ const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Questions", href: "/questions", icon: HelpCircle },
   { name: "Tags", href: "/tags", icon: Tag },
-  { name: "Users", href: "/users", icon: Users },
+  // { name: "Users", href: "/users", icon: Users },
 ]
 
 const categories = [
-  { name: "社内OA系", count: 1234, color: "bg-yellow-500" },
+  { name: "社内IT", count: 1234, color: "bg-yellow-500" },
   { name: "勤務申請", count: 987, color: "bg-blue-500" },
   { name: "ぱわぷら", count: 654, color: "bg-primary" },
   { name: "Dify", count: 543, color: "bg-blue-600" },

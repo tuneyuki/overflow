@@ -13,8 +13,8 @@ export default function HomePage() {
             業務後Overflow
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            従業員同士が、実務や学習での疑問を気軽に共有し、  
-            解決のヒントを見つけられる Q&A コミュニティ。
+            従業員同士が、実務での疑問を気軽に共有し、  
+            解決しあう Q&A コミュニティ。
           </p>
         </div>
 
@@ -40,6 +40,8 @@ export default function HomePage() {
           「業務後Overflow」は、実務中に生じた“ちょっとした疑問”や“詰まり”を  
           仲間と共有し合うための場です。  
           Stack Overflow のようにプログラミングに限らず、日常の中で気軽に使えるQ&Aプラットフォームを目指しています。
+          気軽に質問できるよう、質問者は匿名となります。回答者には感謝の気持ちを込めて Upvote 👍 で応援しましょう。
+
         </p>
       </section>
 
@@ -48,9 +50,9 @@ export default function HomePage() {
         <h2 className="text-2xl font-semibold">使い方</h2>
         <ul className="text-muted-foreground leading-relaxed list-disc list-inside text-left space-y-2">
           <li>「質問を投稿する」から、困っていることを共有</li>
-          <li>他のユーザーが投稿した質問に回答やコメントを追加</li>
+          <li>他のユーザーが投稿した質問に回答を追加</li>
           <li>良い回答には Upvote 👍 して応援</li>
-          <li>タグでトピックごとに検索・絞り込み可能</li>
+          <li>回答数やUpvote数の多い人には、イイコトあるかも？</li>
         </ul>
       </section>
 

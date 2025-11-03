@@ -7,58 +7,58 @@ import Link from "next/link"
 const mockQuestions = [
   {
     id: "1",
-    title: "How to implement server actions in Next.js 15?",
+    title: "勤務申請をオンラインで提出するにはどうすればよいですか？",
     content:
-      "I'm trying to understand the best practices for implementing server actions in Next.js 15. What are the recommended patterns and how do I handle form submissions?",
+      "新しい勤務申請システムの使い方が分かりません。オンラインで勤務申請を提出するための手順や注意点を教えてください。",
     votes: 42,
     answers: 8,
     views: 1234,
-    tags: ["nextjs", "react", "server-actions"],
-    timestamp: "2 hours ago",
+    tags: ["勤務申請", "人事", "申請方法"],
+    timestamp: "2時間前",
   },
   {
     id: "2",
-    title: "TypeScript generic constraints with React components",
+    title: "社内Wi-Fiに接続できない場合の対処法は？",
     content:
-      "I'm having trouble understanding how to properly use TypeScript generic constraints when creating reusable React components. Can someone explain with examples?",
+      "社内Wi-Fiに突然接続できなくなりました。考えられる原因や確認すべき設定、IT部門への連絡方法などを教えてください。",
     votes: 35,
     answers: 5,
     views: 892,
-    tags: ["typescript", "react", "generics"],
-    timestamp: "5 hours ago",
+    tags: ["社内IT", "Wi-Fi", "ネットワーク"],
+    timestamp: "5時間前",
   },
   {
     id: "3",
-    title: "Best way to handle authentication in Next.js App Router?",
+    title: "Difyでワークフローを自動化するおすすめの方法は？",
     content:
-      "What's the recommended approach for implementing authentication in Next.js 15 with the App Router? Should I use middleware or server components?",
+      "Difyを使って業務プロセスを自動化したいと考えています。効果的なワークフロー設計のポイントや、実装時の注意点について教えてください。",
     votes: 28,
     answers: 12,
     views: 2156,
-    tags: ["nextjs", "authentication", "app-router"],
-    timestamp: "1 day ago",
+    tags: ["Dify", "自動化", "業務効率化"],
+    timestamp: "1日前",
   },
   {
     id: "4",
-    title: "Optimizing React performance with useMemo and useCallback",
+    title: "Pythonで大量データを高速に処理するには？",
     content:
-      "When should I use useMemo vs useCallback? I'm seeing performance issues in my React app and want to optimize it properly.",
+      "Pythonで数十万件のデータを処理する際、ループが遅くなってしまいます。パフォーマンスを改善する方法やおすすめのライブラリはありますか？",
     votes: 56,
     answers: 15,
     views: 3421,
-    tags: ["react", "performance", "hooks"],
-    timestamp: "2 days ago",
+    tags: ["Python", "パフォーマンス", "データ処理"],
+    timestamp: "2日前",
   },
   {
     id: "5",
-    title: "CSS Grid vs Flexbox: When to use which?",
+    title: "有給休暇の申請と承認の流れについて教えてください",
     content:
-      "I'm confused about when to use CSS Grid versus Flexbox. What are the use cases for each and how do I decide which one to use?",
+      "有給休暇を申請したいのですが、どのような手順で申請・承認が行われるのか分かりません。詳しい流れを教えてください。",
     votes: 23,
     answers: 7,
     views: 1567,
-    tags: ["css", "layout", "flexbox", "grid"],
-    timestamp: "3 days ago",
+    tags: ["勤務申請", "有給休暇", "申請フロー"],
+    timestamp: "3日前",
   },
 ]
 
@@ -75,7 +75,7 @@ export default function QuestionsPage() {
         <Link href="/questions/ask">
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
-            Ask Question
+            質問を投稿する
           </Button>
         </Link>
       </div>
