@@ -39,7 +39,7 @@ export default function HomePage() {
         <p className="text-muted-foreground leading-relaxed">
           「業務後Overflow」は、実務中に生じた“ちょっとした疑問”や“詰まり”を  
           仲間と共有し合うための場です。  
-          Stack Overflow のようにプログラミングに限らず、日常の中で気軽に使えるQ&Aプラットフォームを目指しています。
+          Stack Overflow のようにプログラミングに限定せず、日常の中で気軽に使えるQ&Aプラットフォームを目指しています。
           気軽に質問できるよう、質問者は匿名となります。回答者には感謝の気持ちを込めて Upvote 👍 で応援しましょう。
 
         </p>

@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 const navigation = [
-  { name: "Home", href: "/", icon: Home },
-  { name: "Questions", href: "/questions", icon: HelpCircle },
+  { name: "ホーム", href: "/", icon: Home },
+  { name: "質問", href: "/questions", icon: HelpCircle },
+  { name: "未解決", href: "/unanswered", icon: HelpCircle },
   { name: "Tags", href: "/tags", icon: Tag },
+  { name: "My質問", href: "/myquestions", icon: Tag },
   // { name: "Users", href: "/users", icon: Users },
 ]
 

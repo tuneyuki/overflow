@@ -4,7 +4,7 @@ import { createClient } from "@/lib/db/supabase-client"
 // 単一質問の取得
 export async function GET(
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> } // ← ここを Promise に合わせる
+  ctx: { params: Promise<{ id: string }> }
 ) {
   const { id } = await ctx.params; // await して取り出す
   const supabase = await createClient()
