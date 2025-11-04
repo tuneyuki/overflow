@@ -1,109 +1,105 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/db/supabase-client"
+import { query } from "@/lib/db/postgres-client"
 
 // ============================================================
 // 質問一覧・検索 API
 // ============================================================
 export async function GET(req: Request) {
-  const supabase = await createClient()
   const { searchParams } = new URL(req.url)
-  const query = searchParams.get("q")
-  const sort = searchParams.get("sort") || "recent" // recent, active, votes
+  const q = searchParams.get("q")
+  const sort = searchParams.get("sort") || "recent"
 
-  let builder = supabase
-    .from("questions")
-    .select(`
-      id, title, body, views_count, created_at, last_activity_at,
-      answers (id),
-      votes (vote_type)
-    `)
+  let orderBy = "q.created_at DESC"
+  if (sort === "active") orderBy = "q.last_activity_at DESC"
+  if (sort === "votes") orderBy = "votes_sum DESC"
 
-  // 検索条件
-  if (query) builder = builder.ilike("title", `%${query}%`)
+  try {
+    const sql = `
+      SELECT 
+        q.id,
+        q.title,
+        q.body,
+        q.views_count,
+        q.created_at,
+        COALESCE(SUM(v.vote_type), 0) AS votes_sum,
+        COUNT(a.id) AS answers_count
+      FROM questions q
+      LEFT JOIN votes v ON v.votable_type = 'question' AND v.votable_id = q.id
+      LEFT JOIN answers a ON a.question_id = q.id
+      ${q ? `WHERE q.title ILIKE $1` : ""}
+      GROUP BY q.id
+      ORDER BY ${orderBy}
+      LIMIT 20;
+    `
+    const values = q ? [`%${q}%`] : []
+    const result = await query(sql, values)
 
-  // 並び替え
-  switch (sort) {
-    case "active":
-      builder = builder.order("last_activity_at", { ascending: false })
-      break
-    case "votes":
-      builder = builder.order("votes_count", { ascending: false })
-      break
-    default:
-      builder = builder.order("created_at", { ascending: false })
+    const formatted = result.rows.map((r: any) => ({
+      id: r.id,
+      title: r.title,
+      content: r.body,
+      views: r.views_count,
+      answers: r.answers_count,
+      votes: r.votes_sum,
+      timestamp: r.created_at,
+    }))
+
+    return NextResponse.json(formatted)
+  } catch (err: any) {
+    console.error("GET /api/questions error:", err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
-
-  const { data, error } = await builder.limit(20)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  const formatted = data.map((q) => ({
-    id: q.id,
-    title: q.title,
-    content: q.body,
-    views: q.views_count,
-    answers: q.answers?.length ?? 0,
-    votes: q.votes?.reduce((acc: number, v: any) => acc + v.vote_type, 0) ?? 0,
-    timestamp: q.created_at,
-  }))
-
-  return NextResponse.json(formatted)
 }
 
 // ============================================================
 // 質問投稿 API
 // ============================================================
-// 質問投稿 API
 export async function POST(req: Request) {
-  const supabase = await createClient()
   const body = await req.json()
   const { title, content, tags, userEmail } = body
 
-  // ユーザー登録または取得
-  const { data: user, error: userErr } = await supabase
-    .from("users")
-    .upsert({ email: userEmail }, { onConflict: "email" })
-    .select("id")
-    .single()
-
-  if (userErr || !user) {
-    return NextResponse.json(
-      { error: userErr?.message || "User not found after upsert" },
-      { status: 500 }
+  try {
+    // 1️⃣ ユーザー登録または取得
+    const userRes = await query(
+      `INSERT INTO users (email)
+       VALUES ($1)
+       ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
+       RETURNING id;`,
+      [userEmail]
     )
-  }
+    const userId = userRes.rows[0].id
 
-  // 質問登録
-  const { data: question, error: qErr } = await supabase
-    .from("questions")
-    .insert({
-      user_id: user.id,
-      title,
-      body: content,
-    })
-    .select("id")
-    .single()
-
-  if (qErr || !question) {
-    return NextResponse.json(
-      { error: qErr?.message || "Question creation failed" },
-      { status: 500 }
+    // 2️⃣ 質問登録
+    const questionRes = await query(
+      `INSERT INTO questions (user_id, title, body)
+       VALUES ($1, $2, $3)
+       RETURNING id;`,
+      [userId, title, content]
     )
+    const questionId = questionRes.rows[0].id
+
+    // 3️⃣ タグ登録と関連付け
+    for (const tag of tags) {
+      const tagRes = await query(
+        `INSERT INTO tags (name)
+         VALUES ($1)
+         ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+         RETURNING id;`,
+        [tag]
+      )
+      const tagId = tagRes.rows[0].id
+
+      await query(
+        `INSERT INTO question_tags (question_id, tag_id)
+         VALUES ($1, $2)
+         ON CONFLICT DO NOTHING;`,
+        [questionId, tagId]
+      )
+    }
+
+    return NextResponse.json({ success: true, id: questionId })
+  } catch (err: any) {
+    console.error("POST /api/questions error:", err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
-
-  // タグの登録
-  for (const tag of tags) {
-    const { data: tagData, error: tagErr } = await supabase
-      .from("tags")
-      .upsert({ name: tag })
-      .select("id")
-      .single()
-
-    if (tagErr || !tagData) continue // スキップしてもOK
-
-    await supabase
-      .from("question_tags")
-      .insert({ question_id: question.id, tag_id: tagData.id })
-  }
-
-  return NextResponse.json({ success: true, id: question.id })
 }
