@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
 import { AnswerCard } from "@/components/answer-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ArrowBigUp, ArrowBigDown, Bookmark } from "lucide-react"
 
 interface Question {
@@ -26,15 +25,26 @@ export default function QuestionDetailPage() {
   const [answers, setAnswers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  // 質問データ取得
+  // 👇 Strict Mode の二重実行防止フラグ
+  const hasIncremented = useRef(false)
+
   useEffect(() => {
     async function fetchQuestion() {
+      if (!id) return
+
       try {
         const res = await fetch(`/api/questions/${id}`)
         const data = await res.json()
+
         if (res.ok) {
           setQuestion(data.question)
           setAnswers(data.answers || [])
+
+          // 👇 1回だけ実行する
+          if (!hasIncremented.current) {
+            hasIncremented.current = true
+            fetch(`/api/questions/${id}/views`, { method: "POST" }).catch(console.error)
+          }
         } else {
           console.error(data.error)
         }
@@ -45,7 +55,7 @@ export default function QuestionDetailPage() {
       }
     }
 
-    if (id) fetchQuestion()
+    fetchQuestion()
   }, [id])
 
   if (loading) return <div className="p-6">Loading...</div>
@@ -91,7 +101,7 @@ export default function QuestionDetailPage() {
           </Button>
         </div>
 
-        {/* 回答セクション */}
+        {/* 回答一覧 */}
         <div className="space-y-4 pt-6 border-t">
           <h2 className="text-2xl font-bold">{answers.length} 件の回答</h2>
           <div className="space-y-4">

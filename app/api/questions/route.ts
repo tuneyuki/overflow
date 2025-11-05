@@ -1,3 +1,4 @@
+// app/api/questions/route.ts
 import { NextResponse } from "next/server"
 import { query } from "@/lib/db/postgres-client"
 
@@ -22,15 +23,27 @@ export async function GET(req: Request) {
         q.views_count,
         q.created_at,
         COALESCE(SUM(v.vote_type), 0) AS votes_sum,
-        COUNT(a.id) AS answers_count
+        COUNT(DISTINCT a.id) AS answers_count,
+        COALESCE(
+          ARRAY_AGG(DISTINCT t.name) 
+          FILTER (WHERE t.name IS NOT NULL), 
+          '{}'
+        ) AS tags
       FROM questions q
-      LEFT JOIN votes v ON v.votable_type = 'question' AND v.votable_id = q.id
-      LEFT JOIN answers a ON a.question_id = q.id
+      LEFT JOIN votes v 
+        ON v.votable_type = 'question' AND v.votable_id = q.id
+      LEFT JOIN answers a 
+        ON a.question_id = q.id
+      LEFT JOIN question_tags qt 
+        ON qt.question_id = q.id
+      LEFT JOIN tags t 
+        ON t.id = qt.tag_id
       ${q ? `WHERE q.title ILIKE $1` : ""}
       GROUP BY q.id
       ORDER BY ${orderBy}
       LIMIT 20;
     `
+
     const values = q ? [`%${q}%`] : []
     const result = await query(sql, values)
 
@@ -42,6 +55,7 @@ export async function GET(req: Request) {
       answers: r.answers_count,
       votes: r.votes_sum,
       timestamp: r.created_at,
+      tags: r.tags || [],
     }))
 
     return NextResponse.json(formatted)
@@ -50,7 +64,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
-
 // ============================================================
 // 質問投稿 API
 // ============================================================
