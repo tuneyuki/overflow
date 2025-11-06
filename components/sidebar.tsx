@@ -1,6 +1,7 @@
 "use client"
 
-import { Home, TrendingUp, Tag, Users, BookOpen, HelpCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Home, TrendingUp, Tag, BookOpen, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -11,20 +12,34 @@ const navigation = [
   { name: "未解決", href: "/unanswered", icon: HelpCircle },
   { name: "Tags", href: "/tags", icon: Tag },
   { name: "My質問", href: "/myquestions", icon: Tag },
-  // { name: "Users", href: "/users", icon: Users },
 ]
 
-const categories = [
-  { name: "社内IT", count: 1234, color: "bg-yellow-500" },
-  { name: "勤務申請", count: 987, color: "bg-blue-500" },
-  { name: "ぱわぷら", count: 654, color: "bg-primary" },
-  { name: "Dify", count: 543, color: "bg-blue-600" },
-  { name: "Python", count: 432, color: "bg-green-600" },
-  { name: "Copilot", count: 321, color: "bg-pink-500" },
-]
+interface TagInfo {
+  id: number
+  name: string
+  color: string | null
+  count: number
+}
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [tags, setTags] = useState<TagInfo[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const res = await fetch("/api/tags?limit=10")
+        const data = await res.json()
+        if (res.ok) setTags(data)
+      } catch (err) {
+        console.error("Failed to fetch tags:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTags()
+  }, [])
 
   return (
     <aside className="w-64 border-r bg-card min-h-[calc(100vh-3.5rem)] sticky top-14">
@@ -79,21 +94,31 @@ export function Sidebar() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-semibold">Popular Tags</h3>
           </div>
-          <div className="space-y-2">
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={`/tags/${category.name.toLowerCase()}`}
-                className="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-muted transition-colors group"
-              >
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-2 h-2 rounded-full", category.color)} />
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground">{category.name}</span>
-                </div>
-                <span className="text-xs text-muted-foreground">{category.count}</span>
-              </Link>
-            ))}
-          </div>
+
+          {loading ? (
+            <p className="px-3 text-xs text-muted-foreground">Loading...</p>
+          ) : (
+            <div className="space-y-2">
+              {tags.map((tag) => (
+                <Link
+                  key={tag.id}
+                  href={`/tags/${tag.name.toLowerCase()}`}
+                  className="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-muted transition-colors group"
+                >
+                  <div className="flex items-center gap-2">
+                    {/* 🔹 DBに登録された色を適用 */}
+                    <div
+                      className={cn("w-2 h-2 rounded-full", tag.color || "bg-gray-400")}
+                    />
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground">
+                      {tag.name}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{tag.count}</span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </aside>

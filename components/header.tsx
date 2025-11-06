@@ -1,6 +1,7 @@
 import { Search, MessageSquare } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cookies } from 'next/headers'
+import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 export async function Header() {
@@ -13,10 +14,13 @@ export async function Header() {
       <div className="flex h-14 items-center justify-between px-4">
 
         {/* 左：ロゴ */}
-        <div className="flex items-center gap-2">
+        <Link
+          href="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <MessageSquare className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold">業務後Overflow</span>
-        </div>
+        </Link>
 
         {/* 中央：検索 */}
         <div className="flex-1 max-w-2xl px-6">
@@ -25,7 +29,7 @@ export async function Header() {
             <Input
               type="search"
               placeholder="Search questions..."
-              className="w-full pl-9 bg-muted/50"
+              className="w-full pl-9 bg-muted/50 bg-gray-200 dark:bg-gray-800"
             />
           </div>
         </div>

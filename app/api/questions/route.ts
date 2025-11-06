@@ -64,6 +64,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
+
 // ============================================================
 // 質問投稿 API
 // ============================================================
@@ -91,21 +92,51 @@ export async function POST(req: Request) {
     )
     const questionId = questionRes.rows[0].id
 
-    // 3️⃣ タグ登録と関連付け
-    for (const tag of tags) {
-      const tagRes = await query(
-        `INSERT INTO tags (name)
-         VALUES ($1)
-         ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-         RETURNING id;`,
-        [tag]
-      )
-      const tagId = tagRes.rows[0].id
+    // 🎨 10色パレット定義
+    const TAG_COLORS = [
+      "bg-blue-500",
+      "bg-green-500",
+      "bg-yellow-500",
+      "bg-pink-500",
+      "bg-purple-500",
+      "bg-orange-500",
+      "bg-red-500",
+      "bg-teal-500",
+      "bg-indigo-500",
+      "bg-cyan-500",
+    ]
 
+    // 3️⃣ タグ登録と関連付け
+    for (const [index, tag] of tags.entries()) {
+      const color = TAG_COLORS[index % TAG_COLORS.length]
+
+      // 1️⃣ まずは挿入を試みる
+      const insertRes = await query(
+        `INSERT INTO tags (name, color)
+        VALUES ($1, $2)
+        ON CONFLICT (name) DO NOTHING
+        RETURNING id;`,
+        [tag, color]
+      )
+
+      let tagId: number
+
+      // 2️⃣ 既存タグなら id を取得し直す
+      if (insertRes.rows.length > 0) {
+        tagId = insertRes.rows[0].id
+      } else {
+        const selectRes = await query(
+          `SELECT id FROM tags WHERE name = $1;`,
+          [tag]
+        )
+        tagId = selectRes.rows[0].id
+      }
+
+      // 3️⃣ 質問との関連を登録
       await query(
         `INSERT INTO question_tags (question_id, tag_id)
-         VALUES ($1, $2)
-         ON CONFLICT DO NOTHING;`,
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING;`,
         [questionId, tagId]
       )
     }

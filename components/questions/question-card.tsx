@@ -1,4 +1,3 @@
-// components/questions/question-card.tsx
 import { MessageSquare, Eye, ArrowBigUp, Clock } from "lucide-react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
@@ -15,29 +14,6 @@ interface QuestionCardProps {
   timestamp: string
 }
 
-// 経過日数を計算して "(◯日前)" 形式に変換
-function formatDateWithDaysAgo(timestamp: string) {
-  const date = new Date(timestamp)
-  const now = new Date()
-
-  // JST基準に変換
-  const jstDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }))
-  const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }))
-
-  const diffMs = jstNow.getTime() - jstDate.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  const formattedDate = jstDate.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Asia/Tokyo",
-  })
-
-  if (diffDays === 0) return `${formattedDate}（今日）`
-  if (diffDays === 1) return `${formattedDate}（1日前）`
-  return `${formattedDate}（${diffDays}日前）`
-}
-
 export function QuestionCard({
   id,
   title,
@@ -48,8 +24,16 @@ export function QuestionCard({
   tags,
   timestamp,
 }: QuestionCardProps) {
+  // JST基準の日付に整形（例: 2025/11/05）
+  const formattedDate = new Date(timestamp).toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Tokyo",
+  })
+
   return (
-    <Card className="p-4 hover:bg-muted/50 transition-colors">
+    <Card className="p-4 hover:bg-muted/50 transition-colors bg-white dark:bg-gray-900">
       <div className="flex gap-4">
         {/* 左側: スコア表示 */}
         <div className="flex flex-col gap-2 items-center min-w-[80px] text-sm">
@@ -81,21 +65,21 @@ export function QuestionCard({
             </p>
           </div>
 
-          {/* タグ + 日付（左右分割） */}
+          {/* タグ + 投稿日（左右分割） */}
           <div className="flex items-center justify-between">
             {/* 左側：タグ */}
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <Badge key={tag} variant="secondary" className="text-xs bg-gray-200 dark:bg-gray-700">
                   {tag}
                 </Badge>
               ))}
             </div>
 
-            {/* 右側：投稿日（◯日前） */}
+            {/* 右側：投稿日 */}
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              <span>{formatDateWithDaysAgo(timestamp)}</span>
+              <span>{formattedDate}</span>
             </div>
           </div>
         </div>
