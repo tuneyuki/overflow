@@ -19,12 +19,18 @@ interface QuestionCardProps {
 function formatDateWithDaysAgo(timestamp: string) {
   const date = new Date(timestamp)
   const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
+
+  // JST基準に変換
+  const jstDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }))
+  const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }))
+
+  const diffMs = jstNow.getTime() - jstDate.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  const formattedDate = date.toLocaleDateString("ja-JP", {
+  const formattedDate = jstDate.toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    timeZone: "Asia/Tokyo",
   })
 
   if (diffDays === 0) return `${formattedDate}（今日）`
