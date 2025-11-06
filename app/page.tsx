@@ -37,11 +37,12 @@ export default function HomePage() {
       <section className="max-w-4xl space-y-4">
         <h2 className="text-2xl font-semibold">コンセプト</h2>
         <p className="text-muted-foreground leading-relaxed">
-          「業務後Overflow」は、実務中に生じた“ちょっとした疑問”や“詰まり”を  
-          仲間と共有し合うための場です。  
           Stack Overflow のようにプログラミングに限定せず、日常の中で気軽に使えるQ&Aプラットフォームを目指しています。
           気軽に質問できるよう、質問者は匿名となります。回答者には感謝の気持ちを込めて Upvote 👍 で応援しましょう。
-
+        </p>
+        <p className="text-muted-foreground leading-relaxed">
+          蓄積されたQ&Aを、APIで社内ツールやチャットボットに組み込むことで、
+          業務効率化やナレッジ共有の促進にも役立てられます。 （APIは開発中）
         </p>
       </section>
 
@@ -66,7 +67,7 @@ export default function HomePage() {
           <Link href="/questions/ask">
             <Button variant="secondary">質問投稿</Button>
           </Link>
-          <Link href="https://github.com/tuneyuki" target="_blank" rel="noopener noreferrer">
+          <Link href="https://github.com/tuneyuki/overflow" target="_blank" rel="noopener noreferrer">
             <Button variant="secondary">GitHub プロジェクト</Button>
           </Link>
         </div>
