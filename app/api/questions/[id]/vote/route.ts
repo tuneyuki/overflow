@@ -3,26 +3,17 @@
 import { NextResponse } from "next/server"
 import { query } from "@/lib/db/postgres-client"
 
-// ============================================================
-// 質問への投票 API
-// POST /api/questions/:id/vote
-// ============================================================
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   const { userEmail, voteType } = await req.json()
-  const questionId = parseInt(params.id, 10)
+  const votableId = Number(params.id)
+  const votableType = "question" // 回答なら "answer"
 
-  if (!userEmail) {
-    return NextResponse.json({ error: "User email required" }, { status: 400 })
-  }
-  if (![1, -1].includes(voteType)) {
-    return NextResponse.json({ error: "Invalid vote type" }, { status: 400 })
+  if (!userEmail || ![1, -1].includes(voteType)) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 })
   }
 
   try {
-    // 1️⃣ ユーザーを登録または取得
+    // 1️⃣ ユーザーID取得
     const userRes = await query(
       `INSERT INTO users (email)
        VALUES ($1)
@@ -32,43 +23,42 @@ export async function POST(
     )
     const userId = userRes.rows[0].id
 
-    // 2️⃣ 既存投票を確認
+    // 2️⃣ 既存投票チェック
     const existing = await query(
-      `SELECT id, vote_type FROM votes
-       WHERE user_id = $1 AND votable_type = 'question' AND votable_id = $2`,
-      [userId, questionId]
+      `SELECT id, vote_type FROM votes 
+       WHERE user_id = $1 AND votable_type = $2 AND votable_id = $3`,
+      [userId, votableType, votableId]
     )
 
-    // 3️⃣ 投票を更新または作成
     if (existing.rows.length > 0) {
-      const current = existing.rows[0]
-      if (current.vote_type === voteType) {
-        // 同じ投票 → 削除（トグル動作）
-        await query(`DELETE FROM votes WHERE id = $1`, [current.id])
+      const currentVote = existing.rows[0].vote_type
+
+      if (currentVote === voteType) {
+        // 同じ投票なら削除（キャンセル扱い）
+        await query(`DELETE FROM votes WHERE id = $1`, [existing.rows[0].id])
       } else {
-        // 逆投票に変更
-        await query(`UPDATE votes SET vote_type = $1 WHERE id = $2`, [voteType, current.id])
+        // 逆方向の投票なら更新
+        await query(`UPDATE votes SET vote_type = $1 WHERE id = $2`, [voteType, existing.rows[0].id])
       }
     } else {
       // 新規投票
       await query(
         `INSERT INTO votes (user_id, votable_type, votable_id, vote_type)
-         VALUES ($1, 'question', $2, $3)`,
-        [userId, questionId, voteType]
+         VALUES ($1, $2, $3, $4)`,
+        [userId, votableType, votableId, voteType]
       )
     }
 
-    // 4️⃣ 最新の合計票を返す
-    const totalRes = await query(
-      `SELECT COALESCE(SUM(vote_type), 0) AS votes_sum
-       FROM votes
-       WHERE votable_type = 'question' AND votable_id = $1`,
-      [questionId]
+    // 3️⃣ 合計投票数を返す
+    const total = await query(
+      `SELECT COALESCE(SUM(vote_type), 0) AS votes 
+       FROM votes WHERE votable_type = $1 AND votable_id = $2`,
+      [votableType, votableId]
     )
 
-    return NextResponse.json({ success: true, votes: totalRes.rows[0].votes_sum })
+    return NextResponse.json({ success: true, votes: total.rows[0].votes })
   } catch (err: any) {
-    console.error("POST /api/questions/[id]/vote error:", err)
+    console.error("Vote API error:", err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

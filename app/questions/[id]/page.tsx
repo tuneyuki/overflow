@@ -24,23 +24,23 @@ export default function QuestionDetailPage() {
   const [question, setQuestion] = useState<Question | null>(null)
   const [answers, setAnswers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [answerText, setAnswerText] = useState("") // 🟢 回答入力用
+  const [submitting, setSubmitting] = useState(false)
 
-  // 👇 Strict Mode の二重実行防止フラグ
   const hasIncremented = useRef(false)
 
+  // 質問 + 回答取得
   useEffect(() => {
     async function fetchQuestion() {
       if (!id) return
-
       try {
         const res = await fetch(`/api/questions/${id}`)
         const data = await res.json()
-
         if (res.ok) {
           setQuestion(data.question)
           setAnswers(data.answers || [])
 
-          // 👇 1回だけ実行する
+          // 👇 閲覧数カウントは1回のみ
           if (!hasIncremented.current) {
             hasIncremented.current = true
             fetch(`/api/questions/${id}/views`, { method: "POST" }).catch(console.error)
@@ -54,9 +54,37 @@ export default function QuestionDetailPage() {
         setLoading(false)
       }
     }
-
     fetchQuestion()
   }, [id])
+
+  // 🟢 回答投稿処理
+  async function handleSubmit() {
+    if (!answerText.trim()) return
+    setSubmitting(true)
+
+    try {
+      const res = await fetch(`/api/questions/${id}/answers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: answerText,
+          userEmail: "anonymous@example.com", // ← 本来はCookieなどから取得
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        // 新しい回答をリストに追加
+        setAnswers((prev) => [...prev, data.answer])
+        setAnswerText("")
+      } else {
+        console.error(data.error)
+      }
+    } catch (err) {
+      console.error("回答投稿失敗:", err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (loading) return <div className="p-6">Loading...</div>
   if (!question) return <div className="p-6 text-muted-foreground">Question not found</div>
@@ -64,6 +92,7 @@ export default function QuestionDetailPage() {
   return (
     <main className="flex-1 p-6">
       <div className="max-w-5xl mx-auto space-y-6">
+
         {/* 質問ヘッダ */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">{question.title}</h1>
@@ -89,16 +118,10 @@ export default function QuestionDetailPage() {
 
         {/* 投票・ブックマーク */}
         <div className="flex items-center gap-2 mt-4">
-          <Button variant="ghost" size="sm">
-            <ArrowBigUp className="h-5 w-5" />
-          </Button>
+          <Button variant="ghost" size="sm"><ArrowBigUp className="h-5 w-5" /></Button>
           <span className="text-lg font-medium">{question.votes}</span>
-          <Button variant="ghost" size="sm">
-            <ArrowBigDown className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Bookmark className="h-5 w-5" />
-          </Button>
+          <Button variant="ghost" size="sm"><ArrowBigDown className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="sm"><Bookmark className="h-5 w-5" /></Button>
         </div>
 
         {/* 回答一覧 */}
@@ -106,7 +129,14 @@ export default function QuestionDetailPage() {
           <h2 className="text-2xl font-bold">{answers.length} 件の回答</h2>
           <div className="space-y-4">
             {answers.map((a) => (
-              <AnswerCard key={a.id} {...a} />
+              <AnswerCard
+                key={a.id}
+                id={a.id}
+                content={a.content}
+                author={a.author_email || "anonymous"} // 👈 ここでauthorにマッピング
+                votes={a.votes || 0}
+                timestamp={a.created_at}
+              />
             ))}
           </div>
         </div>
@@ -115,10 +145,18 @@ export default function QuestionDetailPage() {
         <div className="space-y-4 pt-6 border-t">
           <h3 className="text-xl font-bold">あなたの回答</h3>
           <div className="space-y-4">
-            <Textarea placeholder="ここに回答を入力..." className="min-h-[200px]" />
-            <Button>回答を投稿</Button>
+            <Textarea
+              placeholder="ここに回答を入力..."
+              className="min-h-[200px]"
+              value={answerText}
+              onChange={(e) => setAnswerText(e.target.value)}
+            />
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "投稿中..." : "回答を投稿"}
+            </Button>
           </div>
         </div>
+
       </div>
     </main>
   )
