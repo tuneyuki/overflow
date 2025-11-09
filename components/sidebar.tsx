@@ -42,7 +42,7 @@ export function Sidebar() {
   }, [])
 
   return (
-    <aside className="w-64 border-r bg-card min-h-[calc(100vh-3.5rem)] sticky top-14">
+    <aside className="w-64 border-r bg-card min-h-[calc(100vh-3.5rem)] sticky top-14 dark:bg-gray-900">
       <div className="p-4 space-y-6">
         {/* Main Navigation */}
         <nav className="space-y-1">

@@ -54,7 +54,7 @@ export function QuestionCard({
           {/* 右側: 内容 */}
           <div className="flex-1 space-y-3">
             <div>
-              <h3 className="text-lg font-semibold text-primary group-hover:text-primary/80 transition-colors">
+              <h3 className="text-lg font-semibold text-primary dark:text-blue-200 group-hover:text-primary/80 transition-colors">
                 {title}
               </h3>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

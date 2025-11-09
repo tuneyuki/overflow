@@ -6,7 +6,14 @@ import { AnswerCard } from "@/components/answer-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { MarkdownContent } from "@/components/ui/markdown"
 import { ArrowBigUp, ArrowBigDown, Bookmark } from "lucide-react"
+
+// Markdown対応
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import rehypeHighlight from "rehype-highlight"
+import "highlight.js/styles/github-dark.css"
 
 interface Question {
   id: number
@@ -104,7 +111,7 @@ export default function QuestionDetailPage() {
 
         {/* 質問本文 */}
         <div className="prose prose-sm max-w-none">
-          <p className="leading-relaxed whitespace-pre-line">{question.content}</p>
+          <MarkdownContent content={question.content} />
         </div>
 
         {/* タグ */}
