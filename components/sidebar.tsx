@@ -102,7 +102,7 @@ export function Sidebar() {
               {tags.map((tag) => (
                 <Link
                   key={tag.id}
-                  href={`/tags/${tag.name.toLowerCase()}`}
+                  href={`/tags/${tag.id}`}
                   className="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-muted transition-colors group"
                 >
                   <div className="flex items-center gap-2">
