@@ -1,13 +1,17 @@
 // app/api/questions/[id]/vote/route.ts
 
-import { NextResponse } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
 import { query } from "@/lib/db/postgres-client"
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const { userEmail, voteType } = await req.json()
-  const votableId = Number(params.id)
-  const votableType = "question" // 回答なら "answer"
-
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params
+  const { userEmail, voteType } = await request.json()
+  const votableId = Number(id)
+  const votableType = "question"
+  
   if (!userEmail || ![1, -1].includes(voteType)) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 })
   }
